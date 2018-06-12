@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 public class JackTokenizer {
     private File file;
-    
+    private String curToke;
     
     public JackTokenizer(File f){
         file = f;
@@ -19,7 +19,6 @@ public class JackTokenizer {
             current = scanner.nextLine();
             if(!current.equals("")){
                 current = current.replaceAll("//.*", "").trim();
-                System.out.println(current);
             }
         }
     }
