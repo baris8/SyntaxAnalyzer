@@ -6,12 +6,12 @@ import java.util.Scanner;
 
 public class JackTokenizer {
     private File file;
-    private String curToke;
-    private String out;
+    private String curToke, xml, out;
     
     public JackTokenizer(File f){
         file = f;
-        out = "<tokens>\n";
+        xml = "<tokens>\n";
+        out = "";
     }
     
     public void tokenize() throws FileNotFoundException{
@@ -27,11 +27,14 @@ public class JackTokenizer {
                 for(int i = 0; i < current.length(); i++){
                     if(current.charAt(i) == ';' ||  current.charAt(i) == '.' || current.charAt(i) == '(' ||
                         current.charAt(i) == ')' || current.charAt(i) == ',' || current.charAt(i) == ']' || current.charAt(i) == '['){
-                        out += tokenType(s);
+                        xml += tokenTypeXML(s);
+                        setOut(s);
                         s = "";
-                        out += tokenType(""+ current.charAt(i));
+                        xml += tokenTypeXML(""+ current.charAt(i));
+                        setOut(current.charAt(i)+"");
                     }else if(current.charAt(i) == ' '){
-                        out += tokenType(s);
+                        xml += tokenTypeXML(s);
+                        setOut(s);
                         s = "";
                     }else if(current.charAt(i) == '\"'){
                         s += "$";
@@ -40,19 +43,27 @@ public class JackTokenizer {
                             s += current.charAt(i);
                             i++;
                         }
-                        out += tokenType(s);
+                        xml += tokenTypeXML(s);
+                        setOut(s);
                         s = "";
                     }else{
                         s += current.charAt(i);
                     }
                 }
-                out += tokenType(s);
+                xml += tokenTypeXML(s);
+                setOut(s);
             }
         }
-        out += "</tokens>\n";
+        xml += "</tokens>\n";
     }
     
-    public String tokenType(String curToke){
+    public void setOut(String s){
+        if(!s.equals("")){
+            out += s + "\n";
+        }
+    }
+    
+    public String tokenTypeXML(String curToke){
         String out = "";
         switch(curToke){
             case "class": case "constructor": case "function": 
@@ -92,6 +103,9 @@ public class JackTokenizer {
         return out;
     }
     
+    public String getXML(){
+        return xml;
+    }
     public String getOut(){
         return out;
     }

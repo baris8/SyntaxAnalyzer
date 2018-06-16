@@ -30,16 +30,16 @@ public class SyntaxAnalyzer extends Application {
         //Szene erstellen
         String s = "";
         Scene scene = new Scene(root, 900, 600);
-        Label vm = new Label("VM-Code");
-        Label assembler = new Label("Assembler-Code");
-        Button saveButton = new Button("Save as ASM File");
+        Label jackCode = new Label("Jack-Code");
+        Label tokenizedCode = new Label("Tokenized-Code");
+        Button saveButton = new Button("Save as XML File");
         
         TextArea vmText = new TextArea();
         TextArea asmText = new TextArea();
         vmText.setPrefHeight(500);
         
-        root.add(vm, 0, 0);
-        root.add(assembler, 1, 0);
+        root.add(jackCode, 0, 0);
+        root.add(tokenizedCode, 1, 0);
         root.add(vmText, 0, 1);
         root.add(asmText, 1, 1);
         root.add(saveButton, 1, 2);
@@ -70,7 +70,7 @@ public class SyntaxAnalyzer extends Application {
                 try {
                     String name = f.getName().replace(".jack", "T");
                     writer = new PrintWriter(name + ".xml");
-                    writer.println(jt.getOut());
+                    writer.println(jt.getXML());
                     writer.close();
                 } catch (FileNotFoundException ex) {
                     Logger.getLogger(SyntaxAnalyzer.class.getName()).log(Level.SEVERE, null, ex);
