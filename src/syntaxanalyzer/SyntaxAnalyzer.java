@@ -3,7 +3,6 @@ package syntaxanalyzer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,7 +60,10 @@ public class SyntaxAnalyzer extends Application {
         
         JackTokenizer jt = new JackTokenizer(f);
         jt.tokenize();
-        asmText.setText(jt.getOut());
+        Parser p = new Parser(jt.getOut(), jt);
+        p.compileClass();
+        
+        asmText.setText(p.getOut());
         
         saveButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
