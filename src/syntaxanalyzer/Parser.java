@@ -12,6 +12,9 @@ public class Parser {
         pointer = 0;
         jt = j;
         out = "";
+        for(int i = 0; i < input.length; i++){
+            System.out.println("Zeile "+ i + " :"+input[i]);
+        }
     }
     
     public void compileClass(){
@@ -29,7 +32,7 @@ public class Parser {
                 pointer++;
         }
         while(input[pointer].equals("static") || input[pointer].equals("field")){
-            compileVarDec();
+            compileClassVarDec();
         }
         while(input[pointer].equals("constructor") || input[pointer].equals("function") || input[pointer].equals("method")){
             compileSubroutineDec();
@@ -41,26 +44,29 @@ public class Parser {
         out += "</class>\n";
     }
     public void compileClassVarDec(){
+        out += "<classVarDec>\n";
         //('static'|'field')
-        if(jt.tokenType(input[pointer]).equals("KEYWORD") && (jt.keyWord(input[pointer]).equals("static") || jt.keyWord(input[pointer]).equals("field"))){
+        if(jt.tokenType(input[pointer]).equals("KEYWORD") && (input[pointer].equals("static") || input[pointer].equals("field"))){
             out += "<keyword> " + input[pointer] + " </keyword>\n";
             pointer++;
             
             //type
             compileType();
-            
+            compileVarName();
             //(',' varName)*
-            while(jt.tokenType(input[pointer]).equals("SYMBOL") && jt.keyWord(input[pointer]).equals(",")){
+            while(input[pointer].equals(",")){
                 out += "<keyword> , </keyword>\n";
                 pointer++;
                 compileVarName();
             }
             
             //';'
-            if(jt.tokenType(input[pointer]).equals("SYMBOL") && jt.keyWord(input[pointer]).equals(";")){
+            if(input[pointer].equals(";")){
                 out += "<keyword> ; </keyword>\n";
+                pointer++;
             }
         }
+        out += "</classVarDec>\n";
     }
     public void compileType(){
         //type --> int char boolean
@@ -106,7 +112,6 @@ public class Parser {
         compileType();
         compileVarName();
         while(jt.symbol(input[pointer]).equals(",")){
-            System.out.println("Hier");
             out += "<symbol> , </symbol>";
             pointer++;
             compileVarName();
@@ -127,7 +132,7 @@ public class Parser {
             out += "<symbol> } </symbol>\n";
             pointer++;
         }
-        out += "<subroutineBody>\n";
+        out += "</subroutineBody>\n";
     }
     public void compileVarDec(){
         out += "<varDec>\n";
@@ -172,7 +177,6 @@ public class Parser {
                 case "do": compileDoStatement(); break;
                 case "return": compileReturnStatement(); break;
             }
-            System.out.println(input[pointer]);
         }
         out += "</statements>\n";
     }
@@ -359,7 +363,7 @@ public class Parser {
                 out += "<integerConstant> " + input[pointer] + " </integerConstant>\n";
                 pointer++;
             }else if(jt.tokenType(input[pointer]).equals("STRING_CONST")){
-                out += "<stringConstant> " + input[pointer] + " </stringConstant>\n";
+                out += "<stringConstant> " + input[pointer].substring(1) + " </stringConstant>\n";
                 pointer++;
             }else if(input[pointer].equals("true") || input[pointer].equals("false") ||
                     input[pointer].equals("null") || input[pointer].equals("this")){
