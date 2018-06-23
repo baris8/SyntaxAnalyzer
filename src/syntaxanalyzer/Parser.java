@@ -1,5 +1,8 @@
 package syntaxanalyzer;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class Parser {
     
     JackTokenizer jt;
@@ -12,66 +15,48 @@ public class Parser {
         pointer = 0;
         jt = j;
         out = "";
+        System.out.println("File "+ jt.getFile().getName());
+        
         for(int i = 0; i < input.length; i++){
-            System.out.println("Zeile "+ i + " :"+input[i]);
+            System.out.println("Zeile "+i+": "+ input[i]);
         }
     }
     
+    //class --> 'class' className '{' classVarDec* subroutineDec* '}'
     public void compileClass(){
-        if(jt.tokenType(input[pointer]).equals("KEYWORD") && jt.keyWord(input[pointer]).equals("CLASS")){
-            //'class'
-            out += "<class>\n";
-            out += "<keyword> class </keyword>\n";
-            pointer++;
-        }        
-        //className
+        out += "<class>\n";
+        needTerminal("class");     
         compileVarName();
-        //{
-        if(jt.tokenType(input[pointer]).equals("SYMBOL") && input[pointer].equals("{")){
-                out += "<symbol> { </symbol>\n";
-                pointer++;
-        }
+        needTerminal("{"); 
         while(input[pointer].equals("static") || input[pointer].equals("field")){
             compileClassVarDec();
         }
         while(input[pointer].equals("constructor") || input[pointer].equals("function") || input[pointer].equals("method")){
             compileSubroutineDec();
         }
-        if(jt.tokenType(input[pointer]).equals("SYMBOL") && input[pointer].equals("}")){
-                out += "<symbol> } </symbol>\n";
-                pointer++;
-        }
+        needTerminal("}"); 
         out += "</class>\n";
     }
+    //classVarDec --> ('static' | 'field') type varName (',' varName)* ';' 
     public void compileClassVarDec(){
         out += "<classVarDec>\n";
-        //('static'|'field')
-        if(jt.tokenType(input[pointer]).equals("KEYWORD") && (input[pointer].equals("static") || input[pointer].equals("field"))){
+        if(input[pointer].equals("static") || input[pointer].equals("field")){
             out += "<keyword> " + input[pointer] + " </keyword>\n";
             pointer++;
-            
-            //type
             compileType();
             compileVarName();
-            //(',' varName)*
             while(input[pointer].equals(",")){
                 out += "<keyword> , </keyword>\n";
                 pointer++;
                 compileVarName();
             }
-            
-            //';'
-            if(input[pointer].equals(";")){
-                out += "<keyword> ; </keyword>\n";
-                pointer++;
-            }
+            needTerminal(";"); 
         }
         out += "</classVarDec>\n";
     }
+    //type --> 'int' | 'boolean' | 'char' | className
     public void compileType(){
-        //type --> int char boolean
-        //type --> className
-        if(jt.tokenType(input[pointer]).equals("KEYWORD") && (input[pointer].equals("int") || input[pointer].equals("char") || input[pointer].equals("boolean"))){
+        if(input[pointer].equals("int") || input[pointer].equals("char") || input[pointer].equals("boolean")){
             out += "<keyword> " + input[pointer] + " </keyword>\n";
             pointer++;
         }else if(jt.tokenType(input[pointer]).equals("IDENTIFIER")){
@@ -79,94 +64,72 @@ public class Parser {
             pointer++;
         }
     }
+    //subroutineDec --> ('constructor'|'function'|'method') ('void'|type) subroutineName '(' parameterList ')' subroutineBody
     public void compileSubroutineDec(){
         out += "<subroutineDec>\n";
         if(input[pointer].equals("constructor") || input[pointer].equals("function") || input[pointer].equals("method")){
             out += "<keyword> " + input[pointer] + "</keyword>\n";
             pointer++;
         }
-        
         if(input[pointer].equals("void")){
-            out += "<keyword> " + input[pointer] + " </keyword>\n";
-            pointer++;
+            needTerminal("void");
         }else{
             compileType();
         }
         
         compileVarName();
-        if(input[pointer].equals("(")){
-            out += "<symbol> " + input[pointer] + " </symbol>\n";
-            pointer++;
-        }
-        
+        needTerminal("("); 
         compileParameterList();
-        if(input[pointer].equals(")")){
-            out += "<symbol> " + input[pointer] + " </symbol>\n";
-            pointer++;
-        }
+        needTerminal(")"); 
         compileSubroutineBody();
         out += "</subroutineDec>\n";
     }
+    //parameterList --> ((type varName)(',' type VarName)*)?
     public void compileParameterList(){
         out += "<parameterList>\n";
         compileType();
         compileVarName();
-        while(jt.symbol(input[pointer]).equals(",")){
-            out += "<symbol> , </symbol>";
-            pointer++;
+        while(input[pointer].equals(",")){
+            needTerminal(",");
+            compileType();
             compileVarName();
+            out += input[pointer]+"\n";
         }
         out += "</parameterList>\n";
     }
+    //subroutineBody --> '{' varDec* statements '}'
     public void compileSubroutineBody(){
         out += "<subroutineBody>\n";
-        if(jt.tokenType(input[pointer]).equals("SYMBOL") && input[pointer].equals("{")){
-            out += "<symbol> { </symbol>\n";
-            pointer++;
-        }
+        needTerminal("{"); 
         while(jt.tokenType(input[pointer]).equals("KEYWORD") && input[pointer].equals("var")){
             compileVarDec();
         }
         compileStatements();
-        if(jt.tokenType(input[pointer]).equals("SYMBOL") && input[pointer].equals("}")){
-            out += "<symbol> } </symbol>\n";
-            pointer++;
-        }
+        needTerminal("}"); 
         out += "</subroutineBody>\n";
     }
+    //varDec --> 'var' type varName (',' varName)* ';'
     public void compileVarDec(){
         out += "<varDec>\n";
-        //var
-        if(input[pointer].equals("var")){
-            out += "<keyword> var </keyword>\n";
-            pointer++;
-        }
-        //type
-        //varName
+        needTerminal("var"); 
         compileType();
         compileVarName();
-            
-        //(',' varName)*
         while(input[pointer].equals(",")){
             out += "<symbol> , </symbol>\n";
             pointer++;
             compileVarName();
         }
-        //';'
-        if(input[pointer].equals(";")){
-            out += "<symbol> ; </symbol>\n";
-            pointer++;
-        }
+        needTerminal(";"); 
         out += "</varDec>\n";
     }
+    //varName --> identifier
     public void compileVarName(){
         if(jt.tokenType(input[pointer]).equals("IDENTIFIER")){
             out += "<identifier> " + input[pointer] + " </identifier>\n";
             pointer++;
         }
     }
-    
-
+    //statement --> (letStatement | ifStatement | whileStatement | doStatement | returnStatement)*
     public void compileStatements(){
         out += "<statements>\n";
         while(jt.tokenType(input[pointer]).equals("KEYWORD")){
@@ -180,136 +143,75 @@ public class Parser {
         }
         out += "</statements>\n";
     }
+    //letStatement --> 'let' varName ('[' expression ']')? '=' expression ';'
     public void compileLetStatement(){
         out += "<letStatement>\n";
-        if(input[pointer].equals("let")){
-            out += "<keyword> let </keyword>\n";
-            pointer++;
-        }
+        needTerminal("let"); 
         compileVarName();
         if(input[pointer].equals("[")){
-            out += "<symbol> [ </symbol>\n";
-            pointer++;
+            needTerminal("[");
             compileExpression();
-            if(input[pointer].equals("]")){
-                out += "<symbol> ] </symbol>\n";
-                pointer++;
-            }
+            needTerminal("]");
         }
-        if(input[pointer].equals("=")){
-            out += "<symbol> = </symbol>\n";
-            pointer++;
-        }
+        needTerminal("="); 
         compileExpression();
-        if(input[pointer].equals(";")){
-            out += "<symbol> ; </symbol>\n";
-            pointer++;
-        }
+        needTerminal(";"); 
         out += "</letStatement>\n";
     }
+    //ifStatement --> 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
     public void compileIfStatement(){
         out += "<ifStatement>\n";
-        if(input[pointer].equals("if")){
-            out += "<keyword> if </keyword>\n";
-            pointer++;
-        }
-        if(input[pointer].equals("(")){
-            out += "<symbol> ( </symbol>\n";
-            pointer++;
-        }
+        needTerminal("if"); 
+        needTerminal("("); 
         compileExpression();
-        if(input[pointer].equals(")")){
-            out += "<symbol> ) </symbol>\n";
-            pointer++;
-        }
-        if(input[pointer].equals("{")){
-            out += "<symbol> { </symbol>\n";
-            pointer++;
-        }
+        needTerminal(")"); 
+        needTerminal("{"); 
         compileStatements();
-        if(input[pointer].equals("}")){
-            out += "<symbol> } </symbol>\n";
-            pointer++;
-        }
-        
+        needTerminal("}");
         if(input[pointer].equals("else")){
-            out += "<keyword> else </keyword>\n";
-            pointer++;
-            if(input[pointer].equals("{")){
-                out += "<symbol> { </symbol>\n";
-                pointer++;
-            }
+            needTerminal("else"); 
+            needTerminal("{"); 
             compileStatements();
-            if(input[pointer].equals("}")){
-                out += "<symbol> } </symbol>\n";
-                pointer++;
-            }
+            needTerminal("}"); 
         }
         out += "</ifStatement>\n";
     }
+    //whileStatement --> 'while' '(' expression ')' '{' statements '}'
     public void compileWhileStatement(){
         out += "<whileStatement>\n";
-        if(input[pointer].equals("while")){
-            out += "<keyword> while </keyword>\n";
-            pointer++;
-        }
-        if(input[pointer].equals("(")){
-            out += "<symbol> ( </symbol>\n";
-            pointer++;
-        }
+        needTerminal("while"); 
+        needTerminal("("); 
         compileExpression();
-        if(input[pointer].equals(")")){
-            out += "<symbol> ) </symbol>\n";
-            pointer++;
-        }
-        
-        if(input[pointer].equals("{")){
-            out += "<symbol> { </symbol>\n";
-            pointer++;
-        }
+        needTerminal(")"); 
+        needTerminal("{"); 
         compileStatements();
-        if(input[pointer].equals("}")){
-            out += "<symbol> } </symbol>\n";
-            pointer++;
-        }
+        needTerminal("}"); 
         out += "</whileStatement>\n";
     }
+    //doStatement --> 'do' subroutineCall ';'
     public void compileDoStatement(){
         out += "<doStatement>\n";
-        if(input[pointer].equals("do")){
-            out += "<keyword> do </keyword>\n";
-            pointer++;
-        }
+        needTerminal("do"); 
         compileSubroutineCall();
-        if(input[pointer].equals(";")){
-            out += "<symbol> ; </symbol>\n";
-            pointer++;
-        }
+        needTerminal(";"); 
         out += "</doStatement>\n";
     }
+    //returnStatement --> 'return' expression? ';'
     public void compileReturnStatement(){
         out += "<returnStatement>\n";
-        if(input[pointer].equals("return")){
-            out += "<keyword> return </keyword>\n";
-            pointer++;
-        }
+        needTerminal("return"); 
         if(input[pointer].equals(";")){
-            out += "<symbol> ; </symbol>\n";
-            pointer++;
+            needTerminal(";"); 
         }else{
             compileExpression();
-            if(input[pointer].equals(";")){
-                out += "<symbol> ; </symbol>\n";
-                pointer++;
-            }
+            needTerminal(";"); 
         }
         out += "</returnStatement>\n";
     }
-    
+    //expression --> term (op term)*
     public void compileExpression(){
         out += "<expression>\n";
         compileTerm();
-        
         boolean tmp = true;
         while(tmp){
             switch(input[pointer]){
@@ -334,30 +236,25 @@ public class Parser {
         }
         out += "</expression>\n";
     }
+    //term --> intConst | stringConst | keywordConst | varName | varName '[' expression ']' |
+    //subroutineCall | '(' expression ')' | unaryOp term
     public void compileTerm(){
         out += "<term>\n";
         if(jt.tokenType(input[pointer]).equals("IDENTIFIER")){
             String tmp = input[pointer];
             pointer++;
-            //varName[expression]
             if(input[pointer].equals("[")){
                 out += "<identifier> " + tmp + " </identifier>\n";
                 out += "<symbol> " + input[pointer]+ " </symbol>\n";
                 pointer++;
                 compileExpression();
-                if(input[pointer].equals("]")){
-                    out += "<symbol> " + input[pointer]+ " </symbol>\n";
-                    pointer++;
-                }
-            //subroutineCall
+                needTerminal("]");
             }else if(input[pointer].equals("(") || input[pointer].equals(".")){
                 pointer--;
                 compileSubroutineCall();
             }else{
-                //varName
                 out += "<identifier> " + tmp + " </identifier>\n";
             }
-        //
         }else{
             if(jt.tokenType(input[pointer]).equals("INT_CONST")){
                 out += "<integerConstant> " + input[pointer] + " </integerConstant>\n";
@@ -385,48 +282,52 @@ public class Parser {
         }
         out += "</term>\n";
     }
-    
+    //subroutineCall --> subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')' 
     public void compileSubroutineCall(){
         compileVarName();
         if(input[pointer].equals("(")){
-            out += "<symbol> ( </symbol>\n";
-            pointer++;
+            needTerminal("("); 
             compileExpressionList();
-            if(input[pointer].equals(")")){
-                out += "<symbol> ) </symbol>\n";
-                pointer++;
-            }
+            needTerminal(")"); 
         }else if(input[pointer].equals(".")){
-            out += "<symbol> . </symbol>\n";
-            pointer++;
+            needTerminal("."); 
             compileVarName();
-            if(input[pointer].equals("(")){
-                out += "<symbol> ( </symbol>\n";
-                pointer++;
-                compileExpressionList();
-                if(input[pointer].equals(")")){
-                    out += "<symbol> ) </symbol>\n";
-                    pointer++;
-                }
-            }
+            needTerminal("("); 
+            compileExpressionList();
+            needTerminal(")"); 
         }
     }
-    
+    //expressionList --> (expression(',' expression)*)?
     public void compileExpressionList(){
         out += "<expressionList>\n";
         if(!input[pointer].equals(")")){
             compileExpression();
             while(input[pointer].equals(",")){
-                out += "<symbol> , </symbol>\n";
-                pointer++;
+                needTerminal(","); 
                 compileExpression();
             }
         }
         out += "</expressionList>\n";
     }
     
-    public void error(){
-        out = "ERROR";
+    public void needTerminal(String ts){
+        if(input[pointer].equals(ts)){
+            switch(jt.tokenType(input[pointer])){
+                case "KEYWORD": out += "<keyword> " + ts + " </keyword>\n"; break;
+                case "SYMBOL": out += "<symbol> " + ts + " </symbol>\n"; break;
+                case "STRING_CONST": out += "<stringConstant> " + ts + " </stringConstant>\n"; break;
+                case "INT_CONST": out += "<integerConstant> " + ts + " </integerConstant>\n"; break;
+            }
+            pointer++;
+        }else{
+            try {
+                System.out.println("Es fehlt ein: " + ts);
+                
+                throw new Exception();
+            } catch (Exception ex) {
+                Logger.getLogger(Parser.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
     
     public String getOut(){

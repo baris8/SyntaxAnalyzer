@@ -19,10 +19,14 @@ public class JackTokenizer {
         Scanner scanner = new Scanner(file);
         while(scanner.hasNext()){
             current = scanner.nextLine();
+            current = current.replaceAll("//.*", "").trim();
+            if(current.contains("/**")){
+                while(!current.contains("*/")){
+                    current = scanner.nextLine();
+                }
+                current = scanner.nextLine();
+            }
             if(!current.equals("")){
-                current = current.replaceAll("//.*", "").trim();
-                current = current.replaceAll("//*/*.*/*/", "").trim();
-                
                 String s = "";
                 for(int i = 0; i < current.length(); i++){
                     if(current.charAt(i) == ';' ||  current.charAt(i) == '.' || current.charAt(i) == '(' ||
@@ -67,15 +71,14 @@ public class JackTokenizer {
             case "null": case "this": case "let": 
             case "do": case "if": case "else": 
             case "while": case "return":
-                                    out = "KEYWORD"; break;
+                out = "KEYWORD"; break;
             case "{": case "}": case "(": case ")": 
             case "[": case "]": case ".": case ",": 
             case ";": case "+": case "-": case "*": 
-            case "/": case "&": case "|": 
-            case "=": case "~":
-                                    out = "SYMBOL"; break;
-            case ">":   out = "<symbol> &gt; </symbol>\n"; break;
-            case "<":   out = "<symbol> &lt; </symbol>\n"; break;
+            case "/": case "&": case "|": case "=":
+            case "~": case ">": case "<":
+                out = "SYMBOL"; break;
+            
         }
         if(out.equals("") && curToke.length() > 0 && curToke.charAt(0) == '$'){
             out = "STRING_CONST";
@@ -220,6 +223,9 @@ public class JackTokenizer {
     }
     public String getOut(){
         return out;
+    }
+    public File getFile(){
+        return file;
     }
     //Setter
     public void setOut(String s){

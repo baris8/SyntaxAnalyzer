@@ -14,6 +14,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
@@ -28,44 +29,62 @@ public class SyntaxAnalyzer extends Application {
         
         //Szene erstellen
         String s = "";
-        Scene scene = new Scene(root, 900, 600);
+        Scene scene = new Scene(root, 1350, 600);
         Label jackCode = new Label("Jack-Code");
         Label tokenizedCode = new Label("Tokenized-Code");
+        Label parsedCode = new Label("Parsed-Code");
         Button saveButton = new Button("Save as XML File");
         
-        TextArea vmText = new TextArea();
-        TextArea asmText = new TextArea();
-        vmText.setPrefHeight(500);
+        TextArea jackText = new TextArea();
+        TextArea xmlText = new TextArea();
+        TextArea parsedText = new TextArea();
+        jackText.setPrefHeight(500);
         
         root.add(jackCode, 0, 0);
         root.add(tokenizedCode, 1, 0);
-        root.add(vmText, 0, 1);
-        root.add(asmText, 1, 1);
+        root.add(parsedCode, 2, 0);
+        root.add(jackText, 0, 1);
+        root.add(xmlText, 1, 1);
+        root.add(parsedText, 2, 1);
         root.add(saveButton, 1, 2);
         
-        //Datei angeben
-        FileChooser fc = new FileChooser();
-        fc.setTitle("Open VM File");
-        fc.getExtensionFilters().addAll(new ExtensionFilter("Jack File", "*.jack"));
-        File f = fc.showOpenDialog(primaryStage);
-
-        //vmFile anzeigen 
-        String ao = "";
-        Scanner scanner = new Scanner(f);
-        while(scanner.hasNext()){
-            String line = scanner.nextLine();
-            ao += line + "\n";
+        //Ordner mit JackDateien angeben
+        DirectoryChooser dc = new DirectoryChooser();
+        dc.setTitle("Open Jack Directory");
+        //dc.getExtensionFilters().addAll(new ExtensionFilter("Jack File", "*.jack"));
+        File directory = dc.showDialog(primaryStage);
+        File[] files = directory.listFiles();
+        
+        //JackFiles anzeigen 
+        String programmCode = "";
+        String xmlTokensCode = "";
+        String parsingCode = "";
+        
+        for (File file : files) {
+            System.out.println(file.getName());
+            if(file.getName().contains(".jack")){
+                Scanner scanner = new Scanner(file);
+                while(scanner.hasNext()){
+                    String line = scanner.nextLine();
+                    programmCode += line + "\n";
+                }
+                JackTokenizer jt = new JackTokenizer(file);
+                jt.tokenize();
+                
+                xmlTokensCode += jt.getXML();
+                
+                Parser p = new Parser(jt.getOut(), jt);
+                p.compileClass();
+                parsingCode += p.getOut();
+            }
+            programmCode += "\n";
         }
-        vmText.setText(ao);
         
-        JackTokenizer jt = new JackTokenizer(f);
-        jt.tokenize();
-        Parser p = new Parser(jt.getOut(), jt);
-        p.compileClass();
+        jackText.setText(programmCode);
+        xmlText.setText(xmlTokensCode);
+        parsedText.setText(parsingCode);
         
-        asmText.setText(p.getOut());
-        
-        saveButton.setOnAction(new EventHandler<ActionEvent>() {
+       /** saveButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 PrintWriter writer;
@@ -79,7 +98,7 @@ public class SyntaxAnalyzer extends Application {
                 }
             }
         });
-        
+        */
         primaryStage.setTitle("Project 10 - by Baris Üctas");
         primaryStage.setScene(scene);
         primaryStage.show();
