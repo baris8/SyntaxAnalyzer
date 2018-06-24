@@ -2,21 +2,13 @@ package syntaxanalyzer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 
 public class SyntaxAnalyzer extends Application {
@@ -56,7 +48,6 @@ public class SyntaxAnalyzer extends Application {
         String programmCode = "";
         String xmlTokensCode = "";
         String parsingCode = "";
-        
         //Durchlaufe alle Dateien und erstelle die XML Dateien
         for (File file : files) {
             System.out.println(file.getName());
@@ -85,10 +76,6 @@ public class SyntaxAnalyzer extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-
-    
-    
-    
     public static void main(String[] args) {
         launch(args);
     }

@@ -17,11 +17,6 @@ public class Parser {
         pointer = 0;
         jt = j;
         out = "";
-        System.out.println("File "+ jt.getFile().getName());
-        
-        for(int i = 0; i < input.length; i++){
-            System.out.println("Zeile "+i+": "+ input[i]);
-        }
     }
     
     //class --> 'class' className '{' classVarDec* subroutineDec* '}'

@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 public class JackTokenizer {
     private File file;
-    private String curToke, xml, out;
+    private String xml, out;
     
     public JackTokenizer(File f){
         file = f;
