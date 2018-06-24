@@ -33,7 +33,6 @@ public class SyntaxAnalyzer extends Application {
         Label jackCode = new Label("Jack-Code");
         Label tokenizedCode = new Label("Tokenized-Code");
         Label parsedCode = new Label("Parsed-Code");
-        Button saveButton = new Button("Save as XML File");
         
         TextArea jackText = new TextArea();
         TextArea xmlText = new TextArea();
@@ -46,12 +45,10 @@ public class SyntaxAnalyzer extends Application {
         root.add(jackText, 0, 1);
         root.add(xmlText, 1, 1);
         root.add(parsedText, 2, 1);
-        root.add(saveButton, 1, 2);
         
         //Ordner mit JackDateien angeben
         DirectoryChooser dc = new DirectoryChooser();
         dc.setTitle("Open Jack Directory");
-        //dc.getExtensionFilters().addAll(new ExtensionFilter("Jack File", "*.jack"));
         File directory = dc.showDialog(primaryStage);
         File[] files = directory.listFiles();
         
@@ -60,6 +57,7 @@ public class SyntaxAnalyzer extends Application {
         String xmlTokensCode = "";
         String parsingCode = "";
         
+        //Durchlaufe alle Dateien und erstelle die XML Dateien
         for (File file : files) {
             System.out.println(file.getName());
             if(file.getName().contains(".jack")){
@@ -70,35 +68,19 @@ public class SyntaxAnalyzer extends Application {
                 }
                 JackTokenizer jt = new JackTokenizer(file);
                 jt.tokenize();
+                jt.saveTokensXML();
                 
                 xmlTokensCode += jt.getXML();
                 
                 Parser p = new Parser(jt.getOut(), jt);
                 p.compileClass();
                 parsingCode += p.getOut();
+                p.saveParsedXML();
             }
-            programmCode += "\n";
         }
-        
         jackText.setText(programmCode);
         xmlText.setText(xmlTokensCode);
         parsedText.setText(parsingCode);
-        
-       /** saveButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                PrintWriter writer;
-                try {
-                    String name = f.getName().replace(".jack", "T");
-                    writer = new PrintWriter(name + ".xml");
-                    writer.println(jt.getXML());
-                    writer.close();
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(SyntaxAnalyzer.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
-        */
         primaryStage.setTitle("Project 10 - by Baris Üctas");
         primaryStage.setScene(scene);
         primaryStage.show();

@@ -2,7 +2,10 @@ package syntaxanalyzer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JackTokenizer {
     private File file;
@@ -29,8 +32,8 @@ public class JackTokenizer {
             if(!current.equals("")){
                 String s = "";
                 for(int i = 0; i < current.length(); i++){
-                    if(current.charAt(i) == ';' ||  current.charAt(i) == '.' || current.charAt(i) == '(' ||
-                        current.charAt(i) == ')' || current.charAt(i) == ',' || current.charAt(i) == ']' || current.charAt(i) == '['){
+                    if(current.charAt(i) == ';' ||  current.charAt(i) == '.' || current.charAt(i) == '(' || current.charAt(i) == '-' ||
+                        current.charAt(i) == ')' || current.charAt(i) == ',' || current.charAt(i) == ']' || current.charAt(i) == '[' || current.charAt(i) == '~'){
                         xml += tokenTypeXML(s);
                         setOut(s);
                         s = "";
@@ -58,7 +61,7 @@ public class JackTokenizer {
                 setOut(s);
             }
         }
-        xml += "</tokens>\n";
+        xml += "</tokens>";
     }
     
     public String tokenType(String curToke){
@@ -109,15 +112,15 @@ public class JackTokenizer {
             case "null": case "this": case "let": 
             case "do": case "if": case "else": 
             case "while": case "return":
-                                    out = "<keyword> " + curToke + " </keyword>\n"; break;
+                out = "<keyword> " + curToke + " </keyword>\n"; break;
             case "{": case "}": case "(": case ")": 
             case "[": case "]": case ".": case ",": 
             case ";": case "+": case "-": case "*": 
-            case "/": case "&": case "|": 
-            case "=": case "~":
-                                    out = "<symbol> " + curToke + " </symbol>\n"; break;
+            case "/": case "|": case "=": case "~":
+                out = "<symbol> " + curToke + " </symbol>\n"; break;
             case ">":   out = "<symbol> &gt; </symbol>\n"; break;
             case "<":   out = "<symbol> &lt; </symbol>\n"; break;
+            case "&":   out = "<symbol> &amp; </symbol>\n"; break;
         }
         if(out.equals("") && curToke.length() > 0 && curToke.charAt(0) == '$'){
             out = "<stringConstant> " + curToke.substring(1) + " </stringConstant>\n";
@@ -216,6 +219,19 @@ public class JackTokenizer {
         }
         return out;
     }
+    
+    public void saveTokensXML(){
+        PrintWriter writer;
+        try {
+            String name = file.getName().replace(".jack", "T");
+            writer = new PrintWriter("my"+ name + ".xml");
+            writer.println(xml);
+            writer.close();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(SyntaxAnalyzer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     
     //Getter
     public String getXML(){

@@ -1,5 +1,7 @@
 package syntaxanalyzer;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,7 +37,7 @@ public class Parser {
             compileSubroutineDec();
         }
         needTerminal("}"); 
-        out += "</class>\n";
+        out += "</class>";
     }
     //classVarDec --> ('static' | 'field') type varName (',' varName)* ';' 
     public void compileClassVarDec(){
@@ -46,8 +48,7 @@ public class Parser {
             compileType();
             compileVarName();
             while(input[pointer].equals(",")){
-                out += "<keyword> , </keyword>\n";
-                pointer++;
+                needTerminal(",");
                 compileVarName();
             }
             needTerminal(";"); 
@@ -93,7 +94,6 @@ public class Parser {
             needTerminal(",");
             compileType();
             compileVarName();
-            out += input[pointer]+"\n";
         }
         out += "</parameterList>\n";
     }
@@ -216,7 +216,7 @@ public class Parser {
         while(tmp){
             switch(input[pointer]){
                 case "+": case "-": case "=":
-                case "*": case "/": case "&": case "|":
+                case "*": case "/": case "|":
                     out += "<symbol> " + input[pointer] + " </symbol>\n";
                     pointer++;
                     compileTerm();
@@ -231,6 +231,11 @@ public class Parser {
                     pointer++;
                     compileTerm();
                     break;
+                case "&":
+                    out += "<symbol> &amp; </symbol>\n";
+                    pointer++;
+                    compileTerm();
+                    break;
                 default: tmp = false;
             }
         }
@@ -240,7 +245,7 @@ public class Parser {
     //subroutineCall | '(' expression ')' | unaryOp term
     public void compileTerm(){
         out += "<term>\n";
-        if(jt.tokenType(input[pointer]).equals("IDENTIFIER")){
+        if(jt.tokenType(input[pointer]).equals("IDENTIFIER") && !input[pointer].equals("-")){
             String tmp = input[pointer];
             pointer++;
             if(input[pointer].equals("[")){
@@ -327,6 +332,18 @@ public class Parser {
             } catch (Exception ex) {
                 Logger.getLogger(Parser.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+    }
+    
+    public void saveParsedXML(){
+        PrintWriter writer;
+        try {
+            String name = jt.getFile().getName().replace(".jack", "");
+            writer = new PrintWriter("my"+ name + ".xml");
+            writer.println(out);
+            writer.close();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(SyntaxAnalyzer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
